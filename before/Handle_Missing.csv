@@ -1,0 +1,9 @@
+Name,Age,Gender,Date,Income
+John,25,Male,2022/01/01,50000
+Jane,30,Female,2023/01/01,60000
+Jake,,Male,2023-03-03,55000
+Mary,28,Female,2022-01-04,
+Naomi,35,Female,2023-02-15,70000
+,,Male,2022/02/20,45000
+Carlos,40,Male,,60000
+Sophia,22,Female,2023/01/15,48000
