@@ -1,31 +1,30 @@
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import LabelEncoder
 
-def handle_missing_values(df, method="mode", drop=False):
-    if method == "mode":
-        for col in df.select_dtypes(include=['number']).columns:
-            df[col] = df[col].fillna(df[col].mode()[0])
-    
-    elif method == "mean":
-        df = df.fillna(df.select_dtypes(include=['number']).mean())
-    
-    elif method == "median":
-        df = df.fillna(df.select_dtypes(include=['number']).median())
-    
-    if drop:
-        df = df.dropna(axis=0, how='any')
-    
-    df = df.drop_duplicates()
-    
+def handle_missing_values(df, columns=None, method="mean"):
+    if not columns:
+        return df  # No action if no columns selected
+
+    for col in columns:
+        if df[col].dtype in ['int64', 'float64']:
+            if method == "mean":
+                df[col].fillna(df[col].mean(), inplace=True)
+            elif method == "median":
+                df[col].fillna(df[col].median(), inplace=True)
+            elif method == "mode":
+                df[col].fillna(df[col].mode()[0], inplace=True)
+        else:
+            df[col].fillna("NaN", inplace=True)  # Fill non-numerical missing values with "NaN"
+
     return df
 
-def remove_duplicates(df, subset_columns=None, fuzzy_threshold=90):
-    if subset_columns is None:
-        subset_columns = df.columns
-
-    df_cleaned = df.drop_duplicates(subset=subset_columns)
-
-    return df_cleaned
+def remove_duplicates(df, subset_columns=None):
+    """Removes duplicate rows in the dataset based on selected columns."""
+    if subset_columns:  # Check if subset_columns is not empty
+        return df.drop_duplicates(subset=subset_columns)
+    else:
+        return df.drop_duplicates()  # Drop duplicates across all columns if none selected
 
 def correct_data_types(df):
     for col in df.columns:
@@ -44,31 +43,25 @@ def correct_data_types(df):
 def standardize_data(df, columns):
     for col in columns:
         if col in df.columns:
-            # Check if the column is of type string (for Name, Gender, or other string columns)
-            if df[col].dtype == 'object':  # Check if column is a string
-                # Standardize Name and Gender columns by capitalizing the first letter
+            if df[col].dtype == 'object':
                 df[col] = df[col].apply(lambda x: x.title() if isinstance(x, str) else x)
-            
-            # If the column is a string type and appears to be a date (either 'YYYY/MM/DD' or 'YYYY-MM-DD')
-            if df[col].dtype == 'object':  # String type column
+
+            if df[col].dtype == 'object':
                 for i, value in df[col].items():
                     if isinstance(value, str):
-                        # Check if the string is in 'YYYY/MM/DD' format and needs conversion
                         if '/' in value:
                             try:
-                                # Attempt conversion from 'YYYY/MM/DD' to 'YYYY-MM-DD'
                                 df.at[i, col] = pd.to_datetime(value, format='%Y/%m/%d').strftime('%Y-%m-%d')
                             except Exception:
-                                pass  # Ignore if conversion fails
-                        # Check if the string is in 'YYYY-MM-DD' format
+                                pass
                         elif '-' in value:
                             try:
-                                # Check if it's a valid 'YYYY-MM-DD' format date
                                 pd.to_datetime(value, format='%Y-%m-%d')
                             except Exception:
-                                df.at[i, col] = None  # Set invalid dates to None
+                                df.at[i, col] = None
 
     return df
+
 def encode_categorical_variables(df, method='label', columns=None):
     if method == 'label' and columns:
         le = LabelEncoder()
