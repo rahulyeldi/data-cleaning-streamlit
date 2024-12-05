@@ -5,7 +5,7 @@ from data_cleaning import (
     standardize_data, encode_categorical_variables
 )
 
-st.title("Automated Data Cleaning Tool")
+st.title("Data Cleaning Tool")
 
 # File uploader to load CSV
 uploaded_file = st.file_uploader("Upload a CSV file", type="csv")
